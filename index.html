@@ -1,7 +1,2713 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网页生成器 - AI Page Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .left-panel {
+            width: 480px;
+            min-width: 480px;
+            background: #1e293b;
+            border-right: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #334155;
+            background: #1e293b;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin: 0 0 8px 0;
+        }
+
+        .panel-subtitle {
+            font-size: 13px;
+            color: #94a3b8;
+            margin: 0;
+        }
+
+        .input-section {
+            padding: 16px 20px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .input-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .prompt-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 14px;
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .prompt-input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .template-card {
+            padding: 12px;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .template-card:hover {
+            border-color: #6366f1;
+            background: #1e1b4b;
+        }
+
+        .template-card.active {
+            border-color: #6366f1;
+            background: #312e81;
+        }
+
+        .template-icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .template-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 12px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .code-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .code-header {
+            padding: 12px 20px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-tabs {
+            display: flex;
+            gap: 4px;
+        }
+
+        .code-tab {
+            padding: 6px 12px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .code-tab:hover {
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        .code-tab.active {
+            background: #334155;
+            color: #f1f5f9;
+        }
+
+        .export-btn {
+            padding: 6px 12px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .export-btn:hover {
+            background: #059669;
+        }
+
+        .code-container {
+            flex: 1;
+            overflow: auto;
+            padding: 16px 20px;
+        }
+
+        .code-block {
+            margin: 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #e2e8f0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .preview-container {
+            flex: 1;
+            overflow: auto;
+            background: white;
+            position: relative;
+        }
+
+        .preview-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .edit-tooltip {
+            position: absolute;
+            background: #1e293b;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+
+        .edit-tooltip::before {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #1e293b;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #94a3b8;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #64748b;
+            margin: 0 0 8px 0;
+        }
+
+        .empty-desc {
+            font-size: 14px;
+            color: #94a3b8;
+            margin: 0;
+            max-width: 300px;
+            line-height: 1.6;
+        }
+
+        .editable-highlight {
+            outline: 2px solid #6366f1 !important;
+            outline-offset: 2px;
+            cursor: pointer !important;
+            transition: outline 0.15s;
+        }
+
+        .editable-hover {
+            outline: 2px dashed #94a3b8 !important;
+            outline-offset: 2px;
+            cursor: pointer !important;
+        }
+
+        .edit-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .edit-modal-overlay.show {
+            display: flex;
+        }
+
+        .edit-modal {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            width: 500px;
+            max-width: 90vw;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .edit-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin: 0 0 16px 0;
+        }
+
+        .edit-modal-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .edit-modal-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .edit-modal-input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .edit-modal-textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .edit-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-secondary {
+            padding: 10px 20px;
+            background: #334155;
+            color: #e2e8f0;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .btn-primary {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .preview-toolbar {
+            padding: 10px 20px;
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .edit-mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #cbd5e1;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .edit-mode-switch {
+            width: 40px;
+            height: 22px;
+            background: #334155;
+            border-radius: 11px;
+            position: relative;
+            transition: background 0.2s;
+        }
+
+        .edit-mode-switch.active {
+            background: #6366f1;
+        }
+
+        .edit-mode-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        .edit-mode-switch.active::after {
+            transform: translateX(18px);
+        }
+
+        .hint-text {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .hint-text.active {
+            color: #a5b4fc;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        .color-picker-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .color-swatch {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+
+        .color-swatch.active {
+            border-color: #f1f5f9;
+            box-shadow: 0 0 0 2px #6366f1;
+        }
+
+        .element-type-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #334155;
+            color: #94a3b8;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
 <body>
-<h1>Hello GitHub</h1>
-<p>I'm hosted with GitHub Pages.</p>
+    <div class="app-container">
+        <div class="left-panel">
+            <div class="panel-header">
+                <h1 class="panel-title">🎨 网页生成器</h1>
+                <p class="panel-subtitle">输入描述，一键生成可编辑的网页</p>
+            </div>
+
+            <div class="input-section">
+                <label class="input-label">选择模板</label>
+                <div class="template-grid" id="templateGrid">
+                    <div class="template-card active" data-template="landing">
+                        <div class="template-icon">🚀</div>
+                        <div class="template-name">产品着陆页</div>
+                    </div>
+                    <div class="template-card" data-template="portfolio">
+                        <div class="template-icon">💼</div>
+                        <div class="template-name">个人作品集</div>
+                    </div>
+                    <div class="template-card" data-template="blog">
+                        <div class="template-icon">📝</div>
+                        <div class="template-name">博客文章页</div>
+                    </div>
+                    <div class="template-card" data-template="dashboard">
+                        <div class="template-icon">📊</div>
+                        <div class="template-name">数据仪表盘</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <label class="input-label">页面描述 (Prompt)</label>
+                <textarea 
+                    class="prompt-input scrollbar-thin" 
+                    id="promptInput" 
+                    placeholder="描述你想要的网页，例如：&#10;一个 SaaS 产品着陆页，主色调为蓝色，包含导航栏、Hero 区域、功能特性、定价方案和页脚..."
+                ></textarea>
+                <button class="generate-btn" id="generateBtn">
+                    ✨ 生成网页
+                </button>
+            </div>
+
+            <div class="code-section">
+                <div class="code-header">
+                    <div class="code-tabs">
+                        <button class="code-tab active" data-tab="html">HTML</button>
+                        <button class="code-tab" data-tab="css">CSS</button>
+                    </div>
+                    <button class="export-btn" id="exportBtn">📥 导出</button>
+                </div>
+                <div class="code-container scrollbar-thin" id="codeContainer">
+                    <pre class="code-block" id="codeBlock">// 生成的代码将显示在这里</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="preview-toolbar">
+                <div class="toolbar-left">
+                    <div class="edit-mode-toggle" id="editModeToggle">
+                        <div class="edit-mode-switch" id="editModeSwitch"></div>
+                        <span>编辑模式</span>
+                    </div>
+                    <span class="hint-text" id="hintText">开启后点击元素可编辑内容</span>
+                </div>
+                <div style="font-size: 12px; color: #64748b;">
+                    预览区
+                </div>
+            </div>
+            <div class="preview-container scrollbar-thin" id="previewContainer">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">🖼️</div>
+                    <h3 class="empty-title">预览区域</h3>
+                    <p class="empty-desc">在左侧输入描述并点击生成按钮，网页预览将显示在这里</p>
+                </div>
+                <iframe class="preview-iframe" id="previewIframe" style="display: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div class="edit-modal-overlay" id="editModalOverlay">
+        <div class="edit-modal">
+            <h3 class="edit-modal-title">编辑元素内容</h3>
+            <span class="element-type-badge" id="elementTypeBadge">文本</span>
+            <label class="edit-modal-label">元素内容</label>
+            <textarea 
+                class="edit-modal-input edit-modal-textarea scrollbar-thin" 
+                id="editContentInput"
+            ></textarea>
+            <div class="edit-modal-actions">
+                <button class="btn-secondary" id="cancelEditBtn">取消</button>
+                <button class="btn-primary" id="saveEditBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            currentTemplate: 'landing',
+            currentTab: 'html',
+            editMode: false,
+            generatedHTML: '',
+            generatedCSS: '',
+            selectedElement: null,
+            selectedElementPath: null
+        };
+
+        const templates = {
+            landing: {
+                name: '产品着陆页',
+                generate: generateLandingPage
+            },
+            portfolio: {
+                name: '个人作品集',
+                generate: generatePortfolioPage
+            },
+            blog: {
+                name: '博客文章页',
+                generate: generateBlogPage
+            },
+            dashboard: {
+                name: '数据仪表盘',
+                generate: generateDashboardPage
+            }
+        };
+
+        function extractTheme(prompt) {
+            const colors = {
+                blue: { primary: '#3b82f6', primaryDark: '#2563eb', gradient: 'from-blue-500 to-indigo-600' },
+                purple: { primary: '#8b5cf6', primaryDark: '#7c3aed', gradient: 'from-purple-500 to-pink-500' },
+                green: { primary: '#10b981', primaryDark: '#059669', gradient: 'from-green-500 to-teal-500' },
+                orange: { primary: '#f97316', primaryDark: '#ea580c', gradient: 'from-orange-500 to-red-500' },
+                dark: { primary: '#6366f1', primaryDark: '#4f46e5', gradient: 'from-slate-800 to-slate-900' }
+            };
+
+            let colorKey = 'blue';
+            if (prompt.includes('紫色') || prompt.includes('紫')) colorKey = 'purple';
+            else if (prompt.includes('绿色') || prompt.includes('绿')) colorKey = 'green';
+            else if (prompt.includes('橙色') || prompt.includes('橙') || prompt.includes('暖')) colorKey = 'orange';
+            else if (prompt.includes('深色') || prompt.includes('暗黑') || prompt.includes('dark')) colorKey = 'dark';
+
+            return {
+                colors: colors[colorKey],
+                title: extractTitle(prompt) || '我的产品',
+                subtitle: extractSubtitle(prompt) || '让创意变得更简单'
+            };
+        }
+
+        function extractTitle(prompt) {
+            const patterns = [
+                /产品名称(?:为|是|叫)?["']?([^"'\n，。]+)["']?/,
+                /标题(?:为|是|叫)?["']?([^"'\n，。]+)["']?/,
+                /名为["']?([^"'\n，。]+)["']?/,
+                /叫["']?([^"'\n，。]+)["']?/
+            ];
+            for (const pattern of patterns) {
+                const match = prompt.match(pattern);
+                if (match && match[1]) {
+                    return match[1].trim();
+                }
+            }
+            return null;
+        }
+
+        function extractSubtitle(prompt) {
+            const patterns = [
+                /(?:标语|口号|副标题)(?:为|是|叫)?["']?([^"'\n，。]+)["']?/i,
+                /slogan["']?([^"'\n，。]+)["']?/i
+            ];
+            for (const pattern of patterns) {
+                const match = prompt.match(pattern);
+                if (match && match[1]) {
+                    return match[1].trim();
+                }
+            }
+            return null;
+        }
+
+        function generateLandingPage(theme, prompt) {
+            const { colors, title, subtitle } = theme;
+            const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: ${colors.primary};
+        }
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #4b5563;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: ${colors.primary}; }
+        .nav-btn {
+            padding: 10px 24px;
+            background: ${colors.primary};
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .nav-btn:hover { background: ${colors.primaryDark}; }
+        .hero {
+            padding: 100px 40px;
+            text-align: center;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+        }
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, ${colors.primary}, ${colors.primaryDark});
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p {
+            font-size: 20px;
+            color: #6b7280;
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .hero-btns {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+        .btn-primary {
+            padding: 14px 32px;
+            background: ${colors.primary};
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            background: ${colors.primaryDark};
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+        .btn-secondary {
+            padding: 14px 32px;
+            background: white;
+            color: ${colors.primary};
+            border: 2px solid ${colors.primary};
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-secondary:hover { background: #f0f9ff; }
+        .features {
+            padding: 80px 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section-title {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .section-subtitle {
+            text-align: center;
+            font-size: 18px;
+            color: #6b7280;
+            margin-bottom: 60px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+        .feature-card {
+            padding: 32px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, ${colors.primary}, ${colors.primaryDark});
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .feature-card p {
+            color: #6b7280;
+            line-height: 1.7;
+        }
+        .pricing {
+            padding: 80px 40px;
+            background: #f8fafc;
+        }
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .pricing-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px 32px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .pricing-card.featured {
+            border: 2px solid ${colors.primary};
+            transform: scale(1.05);
+        }
+        .pricing-name {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .pricing-price {
+            font-size: 48px;
+            font-weight: 800;
+            color: ${colors.primary};
+            margin-bottom: 8px;
+        }
+        .pricing-price span {
+            font-size: 16px;
+            color: #9ca3af;
+            font-weight: 400;
+        }
+        .pricing-desc {
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+        .pricing-features {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 32px;
+        }
+        .pricing-features li {
+            padding: 8px 0;
+            color: #4b5563;
+        }
+        .pricing-features li::before {
+            content: '✓ ';
+            color: ${colors.primary};
+            font-weight: bold;
+        }
+        .pricing-btn {
+            width: 100%;
+            padding: 12px;
+            background: ${colors.primary};
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .pricing-btn:hover { background: ${colors.primaryDark}; }
+        .footer {
+            padding: 40px;
+            background: #1f2937;
+            color: #9ca3af;
+            text-align: center;
+        }
+        .footer-logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+        }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 24px;
+            list-style: none;
+        }
+        .footer-links a {
+            color: #9ca3af;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: white; }
+        .footer-copy { font-size: 14px; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-logo">${title}</div>
+        <ul class="nav-links">
+            <li><a href="#">首页</a></li>
+            <li><a href="#">功能</a></li>
+            <li><a href="#">定价</a></li>
+            <li><a href="#">关于我们</a></li>
+        </ul>
+        <button class="nav-btn">免费试用</button>
+    </nav>
+
+    <section class="hero">
+        <h1>${subtitle}</h1>
+        <p>一站式解决方案，帮助你的团队提升效率，降低成本，快速实现业务增长。加入数千家企业，体验智能化的工作方式。</p>
+        <div class="hero-btns">
+            <button class="btn-primary">立即开始</button>
+            <button class="btn-secondary">了解更多</button>
+        </div>
+    </section>
+
+    <section class="features">
+        <h2 class="section-title">核心功能</h2>
+        <p class="section-subtitle">强大的功能，简单的操作</p>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>极速体验</h3>
+                <p>毫秒级响应速度，让你的工作效率倍增。优化的性能表现，流畅的用户体验。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>安全可靠</h3>
+                <p>企业级安全防护，数据加密存储。多重安全机制，保障你的信息安全。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>精准高效</h3>
+                <p>智能算法加持，精准匹配需求。自动化工作流，让复杂任务变得简单。</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="pricing">
+        <h2 class="section-title">选择你的方案</h2>
+        <p class="section-subtitle">灵活的定价，满足不同需求</p>
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <div class="pricing-name">基础版</div>
+                <div class="pricing-price">¥99<span>/月</span></div>
+                <div class="pricing-desc">适合个人用户</div>
+                <ul class="pricing-features">
+                    <li>5 个项目</li>
+                    <li>基础功能</li>
+                    <li>邮件支持</li>
+                    <li>10GB 存储</li>
+                </ul>
+                <button class="pricing-btn">开始使用</button>
+            </div>
+            <div class="pricing-card featured">
+                <div class="pricing-name">专业版</div>
+                <div class="pricing-price">¥299<span>/月</span></div>
+                <div class="pricing-desc">适合小团队</div>
+                <ul class="pricing-features">
+                    <li>无限项目</li>
+                    <li>全部功能</li>
+                    <li>优先支持</li>
+                    <li>100GB 存储</li>
+                    <li>团队协作</li>
+                </ul>
+                <button class="pricing-btn">开始使用</button>
+            </div>
+            <div class="pricing-card">
+                <div class="pricing-name">企业版</div>
+                <div class="pricing-price">¥999<span>/月</span></div>
+                <div class="pricing-desc">适合大型企业</div>
+                <ul class="pricing-features">
+                    <li>无限项目</li>
+                    <li>全部功能</li>
+                    <li>专属客服</li>
+                    <li>无限存储</li>
+                    <li>定制开发</li>
+                    <li>SLA 保障</li>
+                </ul>
+                <button class="pricing-btn">联系销售</button>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-logo">${title}</div>
+        <ul class="footer-links">
+            <li><a href="#">隐私政策</a></li>
+            <li><a href="#">服务条款</a></li>
+            <li><a href="#">联系我们</a></li>
+            <li><a href="#">帮助中心</a></li>
+        </ul>
+        <div class="footer-copy">© 2024 ${title}. 保留所有权利。</div>
+    </footer>
+</body>
+</html>`;
+            return html;
+        }
+
+        function generatePortfolioPage(theme, prompt) {
+            const { colors, title } = theme;
+            const name = title || '张三';
+            const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${name} - 个人作品集</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #1f2937;
+            line-height: 1.6;
+            background: #fafafa;
+        }
+        .header {
+            padding: 20px 40px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: ${colors.primary};
+        }
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #4b5563;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: ${colors.primary}; }
+        .hero {
+            padding: 100px 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+        .hero-content h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+        .hero-content h1 span {
+            color: ${colors.primary};
+        }
+        .hero-content .role {
+            font-size: 20px;
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+        .hero-content .bio {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 32px;
+            line-height: 1.8;
+        }
+        .hero-btns {
+            display: flex;
+            gap: 16px;
+        }
+        .btn-primary {
+            padding: 12px 28px;
+            background: ${colors.primary};
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover { background: ${colors.primaryDark}; }
+        .btn-outline {
+            padding: 12px 28px;
+            background: transparent;
+            color: ${colors.primary};
+            border: 2px solid ${colors.primary};
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-outline:hover { background: #f0f9ff; }
+        .hero-image {
+            width: 100%;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, ${colors.primary}22, ${colors.primaryDark}22);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
+        }
+        .skills {
+            padding: 80px 40px;
+            background: white;
+        }
+        .section-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section-title {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .section-subtitle {
+            text-align: center;
+            font-size: 18px;
+            color: #6b7280;
+            margin-bottom: 60px;
+        }
+        .skill-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+        .skill-item {
+            padding: 24px;
+            background: #f9fafb;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .skill-item:hover {
+            background: ${colors.primary}11;
+            transform: translateY(-2px);
+        }
+        .skill-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+        .skill-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .skill-level {
+            font-size: 13px;
+            color: #6b7280;
+        }
+        .projects {
+            padding: 80px 40px;
+        }
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+        .project-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .project-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+        .project-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, ${colors.primary}44, ${colors.primaryDark}44);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+        .project-content {
+            padding: 24px;
+        }
+        .project-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .project-desc {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        .project-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .tag {
+            padding: 4px 12px;
+            background: ${colors.primary}15;
+            color: ${colors.primary};
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .contact {
+            padding: 80px 40px;
+            background: linear-gradient(135deg, ${colors.primary}, ${colors.primaryDark});
+            color: white;
+            text-align: center;
+        }
+        .contact h2 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .contact p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 32px;
+        }
+        .contact-btn {
+            padding: 14px 40px;
+            background: white;
+            color: ${colors.primary};
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .contact-btn:hover { transform: scale(1.05); }
+        .footer {
+            padding: 40px;
+            background: #1f2937;
+            color: #9ca3af;
+            text-align: center;
+        }
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .footer-copy { font-size: 14px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-logo">${name}</div>
+            <ul class="nav-links">
+                <li><a href="#">首页</a></li>
+                <li><a href="#">技能</a></li>
+                <li><a href="#">作品</a></li>
+                <li><a href="#">联系</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>你好，我是 <span>${name}</span></h1>
+            <p class="role">全栈开发工程师 / UI 设计师</p>
+            <p class="bio">拥有 5 年以上的 Web 开发经验，专注于创造美观、实用的数字产品。热爱技术，追求卓越，致力于用代码改变世界。</p>
+            <div class="hero-btns">
+                <button class="btn-primary">查看作品</button>
+                <button class="btn-outline">下载简历</button>
+            </div>
+        </div>
+        <div class="hero-image">👨‍💻</div>
+    </section>
+
+    <section class="skills">
+        <div class="section-inner">
+            <h2 class="section-title">专业技能</h2>
+            <p class="section-subtitle">持续学习，不断进步</p>
+            <div class="skill-grid">
+                <div class="skill-item">
+                    <div class="skill-icon">💻</div>
+                    <div class="skill-name">前端开发</div>
+                    <div class="skill-level">精通</div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-icon">⚙️</div>
+                    <div class="skill-name">后端开发</div>
+                    <div class="skill-level">熟练</div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-icon">🎨</div>
+                    <div class="skill-name">UI 设计</div>
+                    <div class="skill-level">熟练</div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-icon">📱</div>
+                    <div class="skill-name">移动端</div>
+                    <div class="skill-level">熟练</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="projects">
+        <div class="section-inner">
+            <h2 class="section-title">精选作品</h2>
+            <p class="section-subtitle">每一个项目都是用心之作</p>
+            <div class="project-grid">
+                <div class="project-card">
+                    <div class="project-image">🛒</div>
+                    <div class="project-content">
+                        <div class="project-title">电商平台</div>
+                        <div class="project-desc">一个功能完整的电商平台，支持商品管理、订单处理、支付集成等功能。</div>
+                        <div class="project-tags">
+                            <span class="tag">React</span>
+                            <span class="tag">Node.js</span>
+                            <span class="tag">MongoDB</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <div class="project-image">📊</div>
+                    <div class="project-content">
+                        <div class="project-title">数据可视化</div>
+                        <div class="project-desc">企业级数据可视化平台，支持多种图表类型和实时数据更新。</div>
+                        <div class="project-tags">
+                            <span class="tag">Vue.js</span>
+                            <span class="tag">D3.js</span>
+                            <span class="tag">Python</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <div class="project-image">💬</div>
+                    <div class="project-content">
+                        <div class="project-title">社交应用</div>
+                        <div class="project-desc">即时通讯社交应用，支持文字、图片、语音等多种消息类型。</div>
+                        <div class="project-tags">
+                            <span class="tag">React Native</span>
+                            <span class="tag">WebSocket</span>
+                            <span class="tag">Redis</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="contact">
+        <h2>让我们一起合作</h2>
+        <p>有项目想法？欢迎随时联系我</p>
+        <button class="contact-btn">发送邮件</button>
+    </section>
+
+    <footer class="footer">
+        <div class="social-links">
+            <span>📧</span>
+            <span>💼</span>
+            <span>🐙</span>
+            <span>🐦</span>
+        </div>
+        <div class="footer-copy">© 2024 ${name}. All rights reserved.</div>
+    </footer>
+</body>
+</html>`;
+            return html;
+        }
+
+        function generateBlogPage(theme, prompt) {
+            const { colors, title } = theme;
+            const blogTitle = title || '技术博客';
+            const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${blogTitle}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+            color: #1f2937;
+            line-height: 1.8;
+            background: #fafafa;
+        }
+        .header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .blog-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: ${colors.primary};
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            list-style: none;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #4b5563;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: ${colors.primary}; }
+        .article-container {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+        .article-header {
+            margin-bottom: 40px;
+        }
+        .article-category {
+            display: inline-block;
+            padding: 4px 12px;
+            background: ${colors.primary}15;
+            color: ${colors.primary};
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+        .article-title {
+            font-size: 40px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 20px;
+            color: #111827;
+        }
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .author-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, ${colors.primary}, ${colors.primaryDark});
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .author-name {
+            font-weight: 500;
+            color: #374151;
+        }
+        .article-cover {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, ${colors.primary}33, ${colors.primaryDark}33);
+            border-radius: 16px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+        }
+        .article-content {
+            font-size: 17px;
+            color: #374151;
+        }
+        .article-content p {
+            margin-bottom: 24px;
+        }
+        .article-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 40px 0 16px 0;
+            color: #111827;
+        }
+        .article-content h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin: 32px 0 12px 0;
+            color: #1f2937;
+        }
+        .article-content blockquote {
+            padding: 20px 24px;
+            border-left: 4px solid ${colors.primary};
+            background: #f8fafc;
+            margin: 24px 0;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: #4b5563;
+        }
+        .article-content code {
+            padding: 2px 8px;
+            background: #f1f5f9;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 15px;
+            color: ${colors.primary};
+        }
+        .article-content pre {
+            padding: 20px;
+            background: #1e293b;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 24px 0;
+        }
+        .article-content pre code {
+            background: none;
+            color: #e2e8f0;
+            font-size: 14px;
+            padding: 0;
+        }
+        .article-content ul, .article-content ol {
+            margin: 16px 0 24px 24px;
+        }
+        .article-content li {
+            margin-bottom: 8px;
+        }
+        .article-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 40px 0;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+        .tag {
+            padding: 6px 14px;
+            background: #f1f5f9;
+            color: #475569;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tag:hover {
+            background: ${colors.primary}15;
+            color: ${colors.primary};
+        }
+        .author-card {
+            display: flex;
+            gap: 20px;
+            padding: 24px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            margin-bottom: 40px;
+        }
+        .author-card-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, ${colors.primary}, ${colors.primaryDark});
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .author-card-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .author-card-info p {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .related-posts {
+            margin-top: 60px;
+        }
+        .related-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+        .related-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .related-card:hover { transform: translateY(-2px); }
+        .related-image {
+            width: 100%;
+            height: 140px;
+            background: linear-gradient(135deg, ${colors.primary}44, ${colors.primaryDark}44);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+        .related-content {
+            padding: 16px;
+        }
+        .related-content h5 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .related-content span {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .footer {
+            padding: 40px 24px;
+            background: #1f2937;
+            color: #9ca3af;
+            text-align: center;
+            margin-top: 60px;
+        }
+        .footer-copy { font-size: 14px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <a href="#" class="blog-title">${blogTitle}</a>
+            <ul class="nav-links">
+                <li><a href="#">首页</a></li>
+                <li><a href="#">文章</a></li>
+                <li><a href="#">分类</a></li>
+                <li><a href="#">关于</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="article-container">
+        <article>
+            <header class="article-header">
+                <span class="article-category">前端开发</span>
+                <h1 class="article-title">深入理解 JavaScript 异步编程</h1>
+                <div class="article-meta">
+                    <div class="author">
+                        <div class="author-avatar">张</div>
+                        <span class="author-name">张三</span>
+                    </div>
+                    <span>·</span>
+                    <span>2024年1月15日</span>
+                    <span>·</span>
+                    <span>8 分钟阅读</span>
+                </div>
+            </header>
+
+            <div class="article-cover">📚</div>
+
+            <div class="article-content">
+                <p>JavaScript 是一门单线程语言，但它却能够处理大量的异步操作。这背后的原理是什么？本文将带你深入理解 JavaScript 的异步编程机制。</p>
+
+                <h2>1. 为什么需要异步编程</h2>
+                <p>在前端开发中，我们经常需要处理网络请求、文件读取、用户交互等操作。如果这些操作都是同步的，那么程序就会在等待这些操作完成时被阻塞，用户界面会失去响应，这显然是不可接受的。</p>
+
+                <blockquote>异步编程是 JavaScript 的核心特性之一，理解它对于成为一名优秀的前端开发者至关重要。</blockquote>
+
+                <h2>2. 回调函数</h2>
+                <p>最早的异步编程方式是使用回调函数。例如：</p>
+
+<pre><code>function fetchData(callback) {
+    setTimeout(() => {
+        callback('数据加载完成');
+    }, 1000);
+}
+
+fetchData((data) => {
+    console.log(data);
+});</code></pre>
+
+                <p>回调函数的问题在于，当有多个异步操作需要顺序执行时，会产生所谓的"回调地狱"：</p>
+
+<pre><code>fetchUser(userId, (user) => {
+    fetchPosts(user.id, (posts) => {
+        fetchComments(posts[0].id, (comments) => {
+            // 更多嵌套...
+        });
+    });
+});</code></pre>
+
+                <h2>3. Promise</h2>
+                <p>为了解决回调地狱的问题，ES6 引入了 <code>Promise</code>。Promise 提供了更优雅的方式来处理异步操作：</p>
+
+                <h3>Promise 的基本用法</h3>
+                <ul>
+                    <li><code>Promise</code> 有三种状态：pending、fulfilled、rejected</li>
+                    <li>状态只能从 pending 变为 fulfilled 或 rejected</li>
+                    <li>状态一旦改变就不会再变</li>
+                </ul>
+
+<pre><code>const promise = new Promise((resolve, reject) => {
+    // 异步操作
+    if (success) {
+        resolve(result);
+    } else {
+        reject(error);
+    }
+});
+
+promise
+    .then(result => console.log(result))
+    .catch(error => console.error(error));</code></pre>
+
+                <h2>4. async/await</h2>
+                <p>ES2017 引入的 <code>async/await</code> 让异步代码看起来像同步代码一样直观：</p>
+
+<pre><code>async function loadData() {
+    try {
+        const user = await fetchUser(userId);
+        const posts = await fetchPosts(user.id);
+        const comments = await fetchComments(posts[0].id);
+        return comments;
+    } catch (error) {
+        console.error(error);
+    }
+}</code></pre>
+
+                <h2>5. 总结</h2>
+                <p>从回调函数到 Promise，再到 async/await，JavaScript 的异步编程方式在不断进化。理解这些概念的底层原理，能够帮助我们写出更优雅、更健壮的异步代码。</p>
+
+                <p>希望这篇文章对你有所帮助！如果你有任何问题，欢迎在评论区留言讨论。</p>
+            </div>
+
+            <div class="article-tags">
+                <span class="tag">JavaScript</span>
+                <span class="tag">异步编程</span>
+                <span class="tag">前端</span>
+                <span class="tag">Promise</span>
+            </div>
+
+            <div class="author-card">
+                <div class="author-card-avatar">张</div>
+                <div class="author-card-info">
+                    <h4>张三</h4>
+                    <p>全栈开发工程师，热爱分享技术心得。关注 Web 开发、Node.js 和云原生技术。</p>
+                </div>
+            </div>
+        </article>
+
+        <section class="related-posts">
+            <h3 class="related-title">相关文章</h3>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div class="related-image">⚡</div>
+                    <div class="related-content">
+                        <h5>Promise 源码实现详解</h5>
+                        <span>2024年1月10日</span>
+                    </div>
+                </div>
+                <div class="related-card">
+                    <div class="related-image">🎯</div>
+                    <div class="related-content">
+                        <h5>事件循环机制完全指南</h5>
+                        <span>2024年1月5日</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-copy">© 2024 ${blogTitle}. All rights reserved.</div>
+    </footer>
+</body>
+</html>`;
+            return html;
+        }
+
+        function generateDashboardPage(theme, prompt) {
+            const { colors, title } = theme;
+            const dashboardTitle = title || '数据仪表盘';
+            const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${dashboardTitle}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 240px;
+            background: #0f172a;
+            color: #94a3b8;
+            padding: 24px 0;
+            flex-shrink: 0;
+        }
+        .sidebar-logo {
+            padding: 0 24px 24px 24px;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            border-bottom: 1px solid #1e293b;
+            margin-bottom: 16px;
+        }
+        .sidebar-menu {
+            list-style: none;
+        }
+        .sidebar-menu li {
+            margin-bottom: 4px;
+        }
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: #94a3b8;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-menu a:hover {
+            background: #1e293b;
+            color: white;
+        }
+        .sidebar-menu a.active {
+            background: #1e293b;
+            color: white;
+            border-left-color: ${colors.primary};
+        }
+        .sidebar-icon {
+            font-size: 18px;
+        }
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .topbar {
+            background: white;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .topbar-left h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .search-box {
+            padding: 8px 16px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .search-box input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            width: 200px;
+        }
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, ${colors.primary}, ${colors.primaryDark});
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        .content {
+            padding: 32px;
+            overflow-y: auto;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #64748b;
+        }
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .stat-icon.blue { background: #dbeafe; }
+        .stat-icon.green { background: #dcfce7; }
+        .stat-icon.orange { background: #ffedd5; }
+        .stat-icon.purple { background: #f3e8ff; }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .stat-change {
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .stat-change.up { color: #10b981; }
+        .stat-change.down { color: #ef4444; }
+        .charts-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .chart-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            height: 300px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            gap: 12px;
+            padding: 20px 0;
+        }
+        .bar {
+            flex: 1;
+            background: linear-gradient(to top, ${colors.primary}, ${colors.primaryDark}88);
+            border-radius: 6px 6px 0 0;
+            position: relative;
+            transition: all 0.3s;
+            min-height: 20px;
+        }
+        .bar:hover { opacity: 0.8; }
+        .bar-label {
+            position: absolute;
+            bottom: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #64748b;
+            white-space: nowrap;
+        }
+        .bar-value {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: #64748b;
+        }
+        .pie-chart {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin: 20px auto;
+            background: conic-gradient(
+                ${colors.primary} 0deg 126deg,
+                #10b981 126deg 216deg,
+                #f59e0b 216deg 288deg,
+                #ef4444 288deg 360deg
+            );
+            position: relative;
+        }
+        .pie-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .pie-center-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .pie-center-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+        .legend {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+        .legend-label {
+            flex: 1;
+            font-size: 13px;
+            color: #475569;
+        }
+        .legend-value {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .table-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .table-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .view-all {
+            font-size: 13px;
+            color: ${colors.primary};
+            cursor: pointer;
+            font-weight: 500;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        td {
+            padding: 16px;
+            font-size: 14px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        .status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .status.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status.failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-cell-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .user-cell-name {
+            font-weight: 500;
+        }
+        .user-cell-email {
+            font-size: 12px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="sidebar-logo">📊 ${dashboardTitle}</div>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active"><span class="sidebar-icon">📈</span>仪表盘</a></li>
+                <li><a href="#"><span class="sidebar-icon">👥</span>用户管理</a></li>
+                <li><a href="#"><span class="sidebar-icon">📦</span>订单管理</a></li>
+                <li><a href="#"><span class="sidebar-icon">📊</span>数据分析</a></li>
+                <li><a href="#"><span class="sidebar-icon">⚙️</span>系统设置</a></li>
+            </ul>
+        </aside>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>仪表盘概览</h1>
+                </div>
+                <div class="topbar-right">
+                    <div class="search-box">
+                        <span>🔍</span>
+                        <input type="text" placeholder="搜索...">
+                    </div>
+                    <span style="font-size: 20px; cursor: pointer;">🔔</span>
+                    <div class="user-avatar">管</div>
+                </div>
+            </header>
+
+            <main class="content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">总用户数</span>
+                            <div class="stat-icon blue">👥</div>
+                        </div>
+                        <div class="stat-value">12,847</div>
+                        <div class="stat-change up">↑ 12.5% 较上月</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">总收入</span>
+                            <div class="stat-icon green">💰</div>
+                        </div>
+                        <div class="stat-value">¥892,450</div>
+                        <div class="stat-change up">↑ 8.2% 较上月</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">订单数量</span>
+                            <div class="stat-icon orange">📦</div>
+                        </div>
+                        <div class="stat-value">3,429</div>
+                        <div class="stat-change down">↓ 2.1% 较上月</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">转化率</span>
+                            <div class="stat-icon purple">🎯</div>
+                        </div>
+                        <div class="stat-value">24.8%</div>
+                        <div class="stat-change up">↑ 5.3% 较上月</div>
+                    </div>
+                </div>
+
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <div class="chart-title">销售趋势</div>
+                        <div class="chart-container">
+                            <div class="bar" style="height: 60%;">
+                                <span class="bar-value">¥6.5万</span>
+                                <span class="bar-label">1月</span>
+                            </div>
+                            <div class="bar" style="height: 75%;">
+                                <span class="bar-value">¥8.2万</span>
+                                <span class="bar-label">2月</span>
+                            </div>
+                            <div class="bar" style="height: 55%;">
+                                <span class="bar-value">¥5.9万</span>
+                                <span class="bar-label">3月</span>
+                            </div>
+                            <div class="bar" style="height: 85%;">
+                                <span class="bar-value">¥9.1万</span>
+                                <span class="bar-label">4月</span>
+                            </div>
+                            <div class="bar" style="height: 70%;">
+                                <span class="bar-value">¥7.6万</span>
+                                <span class="bar-label">5月</span>
+                            </div>
+                            <div class="bar" style="height: 95%;">
+                                <span class="bar-value">¥10.3万</span>
+                                <span class="bar-label">6月</span>
+                            </div>
+                            <div class="bar" style="height: 80%;">
+                                <span class="bar-value">¥8.9万</span>
+                                <span class="bar-label">7月</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-title">流量来源</div>
+                        <div class="pie-chart">
+                            <div class="pie-center">
+                                <div class="pie-center-value">100%</div>
+                                <div class="pie-center-label">总流量</div>
+                            </div>
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: ${colors.primary};"></div>
+                                <span class="legend-label">直接访问</span>
+                                <span class="legend-value">35%</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #10b981;"></div>
+                                <span class="legend-label">搜索引擎</span>
+                                <span class="legend-value">25%</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #f59e0b;"></div>
+                                <span class="legend-label">社交媒体</span>
+                                <span class="legend-value">20%</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #ef4444;"></div>
+                                <span class="legend-label">其他</span>
+                                <span class="legend-value">20%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header">
+                        <div class="table-title">最近订单</div>
+                        <div class="view-all">查看全部 →</div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>订单号</th>
+                                <th>客户</th>
+                                <th>产品</th>
+                                <th>金额</th>
+                                <th>状态</th>
+                                <th>日期</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#ORD-001</td>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="user-cell-avatar" style="background: #3b82f6;">李</div>
+                                        <div>
+                                            <div class="user-cell-name">李明</div>
+                                            <div class="user-cell-email">li@example.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>专业版订阅</td>
+                                <td>¥299.00</td>
+                                <td><span class="status success">已完成</span></td>
+                                <td>2024-01-15</td>
+                            </tr>
+                            <tr>
+                                <td>#ORD-002</td>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="user-cell-avatar" style="background: #8b5cf6;">王</div>
+                                        <div>
+                                            <div class="user-cell-name">王芳</div>
+                                            <div class="user-cell-email">wang@example.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>企业版订阅</td>
+                                <td>¥999.00</td>
+                                <td><span class="status pending">处理中</span></td>
+                                <td>2024-01-15</td>
+                            </tr>
+                            <tr>
+                                <td>#ORD-003</td>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="user-cell-avatar" style="background: #f59e0b;">张</div>
+                                        <div>
+                                            <div class="user-cell-name">张伟</div>
+                                            <div class="user-cell-email">zhang@example.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>基础版订阅</td>
+                                <td>¥99.00</td>
+                                <td><span class="status success">已完成</span></td>
+                                <td>2024-01-14</td>
+                            </tr>
+                            <tr>
+                                <td>#ORD-004</td>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="user-cell-avatar" style="background: #ef4444;">刘</div>
+                                        <div>
+                                            <div class="user-cell-name">刘洋</div>
+                                            <div class="user-cell-email">liu@example.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>专业版订阅</td>
+                                <td>¥299.00</td>
+                                <td><span class="status failed">已取消</span></td>
+                                <td>2024-01-14</td>
+                            </tr>
+                            <tr>
+                                <td>#ORD-005</td>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="user-cell-avatar" style="background: #10b981;">陈</div>
+                                        <div>
+                                            <div class="user-cell-name">陈静</div>
+                                            <div class="user-cell-email">chen@example.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>企业版订阅</td>
+                                <td>¥999.00</td>
+                                <td><span class="status success">已完成</span></td>
+                                <td>2024-01-13</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>`;
+            return html;
+        }
+
+    const templateCards = document.querySelectorAll('.template-card');
+    const promptInput = document.getElementById('promptInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const previewIframe = document.getElementById('previewIframe');
+    const emptyState = document.getElementById('emptyState');
+    const codeBlock = document.getElementById('codeBlock');
+    const codeTabs = document.querySelectorAll('.code-tab');
+    const exportBtn = document.getElementById('exportBtn');
+    const editModeToggle = document.getElementById('editModeToggle');
+    const editModeSwitch = document.getElementById('editModeSwitch');
+    const hintText = document.getElementById('hintText');
+    const editModalOverlay = document.getElementById('editModalOverlay');
+    const editContentInput = document.getElementById('editContentInput');
+    const saveEditBtn = document.getElementById('saveEditBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const elementTypeBadge = document.getElementById('elementTypeBadge');
+
+    templateCards.forEach(card => {
+        card.addEventListener('click', () => {
+            templateCards.forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            state.currentTemplate = card.dataset.template;
+        });
+    });
+
+    codeTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            codeTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            state.currentTab = tab.dataset.tab;
+            updateCodeDisplay();
+        });
+    });
+
+    function updateCodeDisplay() {
+        if (!state.generatedHTML) {
+            codeBlock.textContent = '// 生成的代码将显示在这里';
+            return;
+        }
+
+        if (state.currentTab === 'html') {
+            codeBlock.textContent = state.generatedHTML;
+        } else {
+            const cssMatch = state.generatedHTML.match(/<style>([\s\S]*?)<\/style>/);
+            if (cssMatch) {
+                codeBlock.textContent = cssMatch[1].trim();
+            } else {
+                codeBlock.textContent = '/* 未找到 CSS 样式 */';
+            }
+        }
+    }
+
+    generateBtn.addEventListener('click', () => {
+        const prompt = promptInput.value.trim();
+        
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<span class="loading"></span>生成中...';
+
+        setTimeout(() => {
+            const template = templates[state.currentTemplate];
+            const theme = extractTheme(prompt);
+            const html = template.generate(theme, prompt);
+            
+            state.generatedHTML = html;
+            updatePreview(html);
+            updateCodeDisplay();
+            
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '✨ 生成网页';
+        }, 800);
+    });
+
+    function updatePreview(html) {
+        emptyState.style.display = 'none';
+        previewIframe.style.display = 'block';
+        
+        const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
+        iframeDoc.open();
+        iframeDoc.write(html);
+        iframeDoc.close();
+
+        if (state.editMode) {
+            setupEditMode();
+        }
+    }
+
+    editModeToggle.addEventListener('click', () => {
+        state.editMode = !state.editMode;
+        
+        if (state.editMode) {
+            editModeSwitch.classList.add('active');
+            hintText.textContent = '点击预览区元素可编辑内容';
+            hintText.classList.add('active');
+            if (state.generatedHTML) {
+                setupEditMode();
+            }
+        } else {
+            editModeSwitch.classList.remove('active');
+            hintText.textContent = '开启后点击元素可编辑内容';
+            hintText.classList.remove('active');
+            removeEditMode();
+        }
+    });
+
+    function setupEditMode() {
+        const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
+        const iframeBody = iframeDoc.body;
+
+        const style = iframeDoc.createElement('style');
+        style.id = 'edit-mode-style';
+        style.textContent = `
+            * { cursor: pointer !important; }
+            *:hover {
+                outline: 2px dashed #6366f1 !important;
+                outline-offset: 2px;
+            }
+        `;
+        iframeDoc.head.appendChild(style);
+
+        iframeBody.addEventListener('click', handleElementClick);
+    }
+
+    function removeEditMode() {
+        const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
+        const iframeBody = iframeDoc.body;
+
+        const style = iframeDoc.getElementById('edit-mode-style');
+        if (style) style.remove();
+
+        iframeBody.removeEventListener('click', handleElementClick);
+    }
+
+    function handleElementClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const target = e.target;
+        
+        let textContent = target.textContent || '';
+        let elementType = target.tagName.toLowerCase();
+        
+        if (['script', 'style', 'html', 'body'].includes(elementType)) {
+            return;
+        }
+
+        state.selectedElement = target;
+        editContentInput.value = textContent.trim();
+        elementTypeBadge.textContent = elementType.toUpperCase() + ' 元素';
+        editModalOverlay.classList.add('show');
+        editContentInput.focus();
+    }
+
+    saveEditBtn.addEventListener('click', () => {
+        if (state.selectedElement) {
+            const newContent = editContentInput.value;
+            state.selectedElement.textContent = newContent;
+            
+            syncIframeToHTML();
+        }
+        editModalOverlay.classList.remove('show');
+        state.selectedElement = null;
+    });
+
+    cancelEditBtn.addEventListener('click', () => {
+        editModalOverlay.classList.remove('show');
+        state.selectedElement = null;
+    });
+
+    editModalOverlay.addEventListener('click', (e) => {
+        if (e.target === editModalOverlay) {
+            editModalOverlay.classList.remove('show');
+            state.selectedElement = null;
+        }
+    });
+
+    function syncIframeToHTML() {
+        const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
+        state.generatedHTML = iframeDoc.documentElement.outerHTML;
+        updateCodeDisplay();
+    }
+
+    exportBtn.addEventListener('click', () => {
+        if (!state.generatedHTML) {
+            alert('请先生成网页');
+            return;
+        }
+
+        const blob = new Blob([state.generatedHTML], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'generated-page.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            editModalOverlay.classList.remove('show');
+            state.selectedElement = null;
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && editModalOverlay.classList.contains('show')) {
+            saveEditBtn.click();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !editModalOverlay.classList.contains('show') && promptInput.value.trim()) {
+            generateBtn.click();
+        }
+    });
+    </script>
 </body>
 </html>
