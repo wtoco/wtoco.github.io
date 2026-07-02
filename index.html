@@ -236,8 +236,37 @@
         .preview-container {
             flex: 1;
             overflow: auto;
-            background: white;
+            background: #f1f5f9;
             position: relative;
+            display: flex;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .preview-wrapper {
+            position: relative;
+            transition: width 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .preview-wrapper.device-desktop {
+            width: 100%;
+            height: 100%;
+        }
+
+        .preview-wrapper.device-tablet {
+            width: 768px;
+            height: 1024px;
+            max-height: 100%;
+        }
+
+        .preview-wrapper.device-mobile {
+            width: 375px;
+            height: 667px;
+            max-height: 100%;
         }
 
         .preview-iframe {
@@ -435,6 +464,72 @@
             gap: 12px;
         }
 
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .device-buttons {
+            display: flex;
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 4px;
+            gap: 2px;
+        }
+
+        .device-btn {
+            padding: 6px 12px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .device-btn:hover {
+            color: #e2e8f0;
+            background: #334155;
+        }
+
+        .device-btn.active {
+            background: #6366f1;
+            color: white;
+        }
+
+        .tool-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            background: #334155;
+            border: none;
+            color: #cbd5e1;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .tool-btn:hover {
+            background: #475569;
+            color: white;
+        }
+
+        .zoom-display {
+            font-size: 12px;
+            color: #94a3b8;
+            min-width: 40px;
+            text-align: center;
+        }
+
         .edit-mode-toggle {
             display: flex;
             align-items: center;
@@ -515,6 +610,55 @@
 
         .scrollbar-thin::-webkit-scrollbar-thumb:hover {
             background: #64748b;
+        }
+
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0f172a;
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+        }
+
+        .fullscreen-overlay.show {
+            display: flex;
+        }
+
+        .fullscreen-toolbar {
+            padding: 12px 24px;
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .fullscreen-content {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            padding: 24px;
+            background: #f1f5f9;
+        }
+
+        .fullscreen-close {
+            padding: 8px 16px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .fullscreen-close:hover {
+            background: #dc2626;
         }
 
         .color-picker-row {
@@ -619,8 +763,23 @@
                     </div>
                     <span class="hint-text" id="hintText">开启后点击元素可编辑内容</span>
                 </div>
-                <div style="font-size: 12px; color: #64748b;">
-                    预览区
+                <div class="toolbar-right">
+                    <div class="device-buttons">
+                        <button class="device-btn active" data-device="desktop" title="桌面端">
+                            💻 桌面
+                        </button>
+                        <button class="device-btn" data-device="tablet" title="平板">
+                            📱 平板
+                        </button>
+                        <button class="device-btn" data-device="mobile" title="手机">
+                            📲 手机
+                        </button>
+                    </div>
+                    <button class="tool-btn" id="zoomOutBtn" title="缩小">−</button>
+                    <span class="zoom-display" id="zoomDisplay">100%</span>
+                    <button class="tool-btn" id="zoomInBtn" title="放大">+</button>
+                    <button class="tool-btn" id="refreshBtn" title="刷新预览">↻</button>
+                    <button class="tool-btn" id="fullscreenBtn" title="全屏预览">⛶</button>
                 </div>
             </div>
             <div class="preview-container scrollbar-thin" id="previewContainer">
@@ -629,7 +788,33 @@
                     <h3 class="empty-title">预览区域</h3>
                     <p class="empty-desc">在左侧输入描述并点击生成按钮，网页预览将显示在这里</p>
                 </div>
-                <iframe class="preview-iframe" id="previewIframe" style="display: none;"></iframe>
+                <div class="preview-wrapper device-desktop" id="previewWrapper" style="display: none;">
+                    <iframe class="preview-iframe" id="previewIframe"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fullscreen-overlay" id="fullscreenOverlay">
+        <div class="fullscreen-toolbar">
+            <div class="toolbar-left">
+                <div class="device-buttons">
+                    <button class="device-btn active" data-device="desktop" title="桌面端">
+                        💻 桌面
+                    </button>
+                    <button class="device-btn" data-device="tablet" title="平板">
+                        📱 平板
+                    </button>
+                    <button class="device-btn" data-device="mobile" title="手机">
+                        📲 手机
+                    </button>
+                </div>
+            </div>
+            <button class="fullscreen-close" id="fullscreenCloseBtn">✕ 退出全屏</button>
+        </div>
+        <div class="fullscreen-content scrollbar-thin" id="fullscreenContent">
+            <div class="preview-wrapper device-desktop" id="fullscreenWrapper">
+                <iframe class="preview-iframe" id="fullscreenIframe"></iframe>
             </div>
         </div>
     </div>
@@ -658,7 +843,10 @@
             generatedHTML: '',
             generatedCSS: '',
             selectedElement: null,
-            selectedElementPath: null
+            selectedElementPath: null,
+            currentDevice: 'desktop',
+            zoom: 100,
+            isFullscreen: false
         };
 
         const templates = {
@@ -2501,6 +2689,7 @@ promise
     const templateCards = document.querySelectorAll('.template-card');
     const promptInput = document.getElementById('promptInput');
     const generateBtn = document.getElementById('generateBtn');
+    const previewWrapper = document.getElementById('previewWrapper');
     const previewIframe = document.getElementById('previewIframe');
     const emptyState = document.getElementById('emptyState');
     const codeBlock = document.getElementById('codeBlock');
@@ -2572,7 +2761,7 @@ promise
 
     function updatePreview(html) {
         emptyState.style.display = 'none';
-        previewIframe.style.display = 'block';
+        previewWrapper.style.display = 'block';
         
         const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
         iframeDoc.open();
@@ -2580,8 +2769,106 @@ promise
         iframeDoc.close();
 
         if (state.editMode) {
-            setupEditMode();
+            setupEditMode(previewIframe);
         }
+
+        if (state.isFullscreen) {
+            updateFullscreenPreview(html);
+        }
+    }
+
+    function updateFullscreenPreview(html) {
+        const fullscreenIframe = document.getElementById('fullscreenIframe');
+        const iframeDoc = fullscreenIframe.contentDocument || fullscreenIframe.contentWindow.document;
+        iframeDoc.open();
+        iframeDoc.write(html);
+        iframeDoc.close();
+
+        if (state.editMode) {
+            setupEditMode(fullscreenIframe);
+        }
+    }
+
+    const deviceButtons = document.querySelectorAll('.device-btn');
+    deviceButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const device = btn.dataset.device;
+            setDevice(device);
+        });
+    });
+
+    function setDevice(device) {
+        state.currentDevice = device;
+        
+        deviceButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.device === device);
+        });
+
+        const wrapper = state.isFullscreen 
+            ? document.getElementById('fullscreenWrapper') 
+            : previewWrapper;
+        
+        wrapper.className = 'preview-wrapper device-' + device;
+    }
+
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const zoomDisplay = document.getElementById('zoomDisplay');
+
+    zoomInBtn.addEventListener('click', () => {
+        if (state.zoom < 200) {
+            state.zoom += 10;
+            updateZoom();
+        }
+    });
+
+    zoomOutBtn.addEventListener('click', () => {
+        if (state.zoom > 50) {
+            state.zoom -= 10;
+            updateZoom();
+        }
+    });
+
+    function updateZoom() {
+        zoomDisplay.textContent = state.zoom + '%';
+        const wrapper = state.isFullscreen 
+            ? document.getElementById('fullscreenWrapper') 
+            : previewWrapper;
+        wrapper.style.transform = `scale(${state.zoom / 100})`;
+        wrapper.style.transformOrigin = 'top center';
+    }
+
+    const refreshBtn = document.getElementById('refreshBtn');
+    refreshBtn.addEventListener('click', () => {
+        if (state.generatedHTML) {
+            updatePreview(state.generatedHTML);
+        }
+    });
+
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const fullscreenOverlay = document.getElementById('fullscreenOverlay');
+    const fullscreenCloseBtn = document.getElementById('fullscreenCloseBtn');
+
+    fullscreenBtn.addEventListener('click', () => {
+        openFullscreen();
+    });
+
+    fullscreenCloseBtn.addEventListener('click', () => {
+        closeFullscreen();
+    });
+
+    function openFullscreen() {
+        if (!state.generatedHTML) return;
+        
+        state.isFullscreen = true;
+        fullscreenOverlay.classList.add('show');
+        updateFullscreenPreview(state.generatedHTML);
+        setDevice(state.currentDevice);
+    }
+
+    function closeFullscreen() {
+        state.isFullscreen = false;
+        fullscreenOverlay.classList.remove('show');
     }
 
     editModeToggle.addEventListener('click', () => {
@@ -2592,18 +2879,26 @@ promise
             hintText.textContent = '点击预览区元素可编辑内容';
             hintText.classList.add('active');
             if (state.generatedHTML) {
-                setupEditMode();
+                setupEditMode(previewIframe);
+                if (state.isFullscreen) {
+                    const fullscreenIframe = document.getElementById('fullscreenIframe');
+                    setupEditMode(fullscreenIframe);
+                }
             }
         } else {
             editModeSwitch.classList.remove('active');
             hintText.textContent = '开启后点击元素可编辑内容';
             hintText.classList.remove('active');
-            removeEditMode();
+            removeEditMode(previewIframe);
+            if (state.isFullscreen) {
+                const fullscreenIframe = document.getElementById('fullscreenIframe');
+                removeEditMode(fullscreenIframe);
+            }
         }
     });
 
-    function setupEditMode() {
-        const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
+    function setupEditMode(iframe = previewIframe) {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
         const iframeBody = iframeDoc.body;
 
         const style = iframeDoc.createElement('style');
@@ -2620,8 +2915,8 @@ promise
         iframeBody.addEventListener('click', handleElementClick);
     }
 
-    function removeEditMode() {
-        const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
+    function removeEditMode(iframe = previewIframe) {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
         const iframeBody = iframeDoc.body;
 
         const style = iframeDoc.getElementById('edit-mode-style');
@@ -2677,6 +2972,10 @@ promise
         const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
         state.generatedHTML = iframeDoc.documentElement.outerHTML;
         updateCodeDisplay();
+        
+        if (state.isFullscreen) {
+            updateFullscreenPreview(state.generatedHTML);
+        }
     }
 
     exportBtn.addEventListener('click', () => {
@@ -2698,6 +2997,10 @@ promise
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
+            if (state.isFullscreen) {
+                closeFullscreen();
+                return;
+            }
             editModalOverlay.classList.remove('show');
             state.selectedElement = null;
         }
